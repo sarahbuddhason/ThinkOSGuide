@@ -35,3 +35,45 @@
 
 ---
 
+## Processes
+
+- **Abstraction:** Simplified representation of complex systems.
+- **Virtualization:** Type of abstrtaction. Process of creating an illusion of a larger, more capable system.
+
+### Isolation
+- Goal of designing an OS is to isolate system components to prevent unwanted interactions.
+- Software object that provides this isolation is a **process**.
+
+### Processes
+- Represent a running program, containing:
+  1. Program text (machine language)
+  2. Data (static and dynamic)
+  3. I/O operations status (waiting to read from disk)
+  4. Hardware state (data in registers, program counter indicating which instruction is currently executing)
+ 
+### OS Capabilities
+1. **Multitasking:** Can interrupt running process at any time, save its hardware state, and resume process later.
+2. **Virtual Memory:** Create illusion that each process has its own chunk of memory.
+3. **Device Abstraction:** Coordinates which process interacts with each components and when.
+
+### UNIX Processes
+- Examples are LaTex, make, terminal windows, text editors.
+- Many more running in the background, performing OS operations.
+- `ps` UNIX command prints information about running processes.
+  1. PID: Unique process ID.
+  2. TTY: Terminal that crated the process.
+  3. TIME: Total processor time used by the process.
+  4. CMD: Name of the running program.
+ 
+## Kernel and Daemon Processes
+- `init` created when OS starts.
+- `kthreadd` is used by OS to created new threads.
+- `k` stands for **kernel**, which is the part of the OS responsible for core capabilities like creating threads.
+- `d` stands for **daemon**, which is the name for processes that run in the background and provide OS services.
+- `ksoftirqd` is a kernel daemon that handles software interrupt requests.
+- `kworker` is one of many kernel processes.
+
+---
+
+## Virtual Memory
+
