@@ -77,3 +77,61 @@
 
 ## Virtual Memory
 
+- **Bit:** Binary digit, one unit of information, 0 or 1.
+- **Byte:** 8 bits, holding 1 of 256 (2^8) values.
+- Relationship between number of bits and number of values they can encode: `N = 2^b`.
+
+### Main Memory (RAM)
+- Most data held in random access memory.
+- Is volatile, meaning that when the computer shuts down, the contents are lost.
+- Typically 2 to 8 GB of memory.
+
+### Storage (HDD/SSD)
+- When process reads and writes files, files are stored in hard drives or solid state drives.
+- Are non-volatile, used for long-term storage.
+- Typically 500 GB to 2 TB.
+
+### Address Spaces
+- Each byte in RAM is specified by an integer **physical address**.
+- Set of valid physical address is called **physical address space**.
+- Runs from 0 to N-1, where N = size of RAM.
+
+### Virtual Address Spaces
+- Most OS provide virtual memory, so programs never need to know how much physical memory is available.
+- Programs work with **virtual addresses**, numbered 0 to M-1, where M = number of valid virtual addresses.
+- M determined by OS and hardware. 32-bit system: 2^32 bytes, or 4 GB.
+
+### Virtual Addresses
+- When reading and writing values in memory, program generates virtual addresses.
+- Hardware translates to physical addresses before accessing RAM.
+- Translation is done per-process, so even if two processes generate same virtual address, they map to different physical memory locations.
+
+### Memory Segments
+- Segments of a process, organized starting at addresses near 0 -> M:
+  1. **Code Segment:** Contains machine langauge instructions.
+  2. **Static Segment:** Contains immutable values.
+  3. **Global Segment:** Contains global variables, local variables declared `static`.
+  4. **Heap Segment:** Contains chunks of memory allocated at runtime, often by calling C function `malloc`.
+  5. **Stack Segment:** Contains call stack with a sequence of stack frames, each containing function's parameters and local variables.
+ 
+```cpp
+#include <stdio.h>
+#include <stdlib.h>
+int global;                  // Third address.
+
+int main ()                  // Lowest address.
+{
+int local = 5;               // Highest address.
+void *p = malloc(128);       // Fourth address.
+char *s = "Hello, World";    // Second address.
+}
+```
+
+- `0x7ffe6085443c` has 12 hexadecimal digits. Each hex digits correspond to 4 bits, so it is a 48-bit address. Virtual address space is 2^48.
+
+### Static Local Variables
+- **Automatic:** Allocated when function is called, freed when function returns.
+- **Static:** Allocated in the global segment, initialized when program starts and keeps its value from one function call to next.
+
+### Address Translation
+
