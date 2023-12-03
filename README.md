@@ -134,4 +134,14 @@ char *s = "Hello, World";    // Second address.
 - **Static:** Allocated in the global segment, initialized when program starts and keeps its value from one function call to next.
 
 ### Address Translation
+- A **Memory Management Unit (MMU)** sits between CPU and RAM.
+- Performs fast translations between VAs and PAs.
+
+### Translation Process
+1. CPU generates VA.
+2. MMU splits VA into two parts: **page number** and **offset**.
+   - **Page** is a chunk of memory, ranging between 1-4 KB.
+3. MMU looks up page number in **Translation Lookaside Buffer (TLB)** and retrieves corresponding PA page number.
+4. Combines PA page number with offset to produce PA.
+5. PA is passed to RAM, which reads or writes to given location.
 
