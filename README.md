@@ -65,7 +65,7 @@
   3. TIME: Total processor time used by the process.
   4. CMD: Name of the running program.
  
-## Kernel and Daemon Processes
+### Kernel and Daemon Processes
 - `init` created when OS starts.
 - `kthreadd` is used by OS to created new threads.
 - `k` stands for **kernel**, which is the part of the OS responsible for core capabilities like creating threads.
