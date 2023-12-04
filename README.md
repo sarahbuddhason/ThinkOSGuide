@@ -307,5 +307,30 @@ fclose(fp);
 - Most computers use IEEE standard for floating-point arithmetic.
 - `float` corresponds to 32-bit.
 - `double` corresponds to 64-bit.
-- Consists of a sign bit, 8 bits for exponent, and 23 bits for coefficient. `(-1)^s * c * 2^q`
+- Consists of a sign bit, 8 bits for exponent, and 23 bits for coefficient. `(-1)^s * c * 2^q`.
 
+### Normalized Floats
+- Most floats are **normalized** so that there is one digit before the point.
+- In base 2, the number always has the digit 1 before the point (eg. 1.1 * 10^2). Can save space by leaving it out of the representation.
+
+## Unions and Memory Errors
+- Two cases for C unions:
+  1. Access the binary representation of data.
+  2. Store heterogeneous data.
+- Reading and writing incorrect types can lead to errors. Must keep track of data type in the union.
+
+## String Representation
+- **ASCII Encoding:** Numeric representation of characters.
+- C-strings are null-terminated.
+
+---
+
+## Memory Management
+
+### Functions for Dynamic Memory Allocation
+1. `malloc`: Takes integer size (in bytes) and returns pointer to new memory allocation with at least the given size. If impossible, returns NULL.
+2. `calloc`: Takes integer size (in bytes) and clears newly allocated memory, setting all bytes to 0.
+3. `free`: Takes a pointer to previously allocated memory, deallocates it.
+4. `realloc`: Takes a pointer to previously allocated memory and a new integer size. Allocates memory with size, copies data from old chunk, frees old chunk, and returns pointer to new chunk.
+
+### Memory Errors
