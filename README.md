@@ -249,4 +249,15 @@ fclose(fp);
 - The FAT entry for each cluster points to the next cluster in the file.
 
 ### Block Allocation
-- 
+- File systems also have to keep track of available blocks.
+- When file is created, FS allocates an available block.
+- When file is deleted, FS makes the block available for re-allocation.
+- Goals are:
+  1. **Speed:** Allocating and freeing should be fast.
+  2. **Minimal space overhead:** Data structures in allocator should be small.
+  3. **Minimal fragmentation:** No blocks are ideally left unused or partially used.
+  4. **Maximum contiguity:** Data that is likely to use used at the same time should be physically contiguous.
+
+---
+
+## Integer Representation
