@@ -261,3 +261,39 @@ fclose(fp);
 ---
 
 ## Integer Representation
+- In C, all integer types are signed, unless declared unsigned.
+- Operations on unsigned ints do not use sign extension: copying the sign bit into the new bits.
+
+## Bitwise Operators
+- `&` to clear bits using a **mask**.
+```cpp
+  xxxx
+& 0011
+  ----
+  00xx
+```
+
+- `|` to set bits.
+```cpp
+  xxxx
+| 0011
+  ----
+  xx11
+```
+
+- `^` to toggle bits.
+```cpp
+  xxxx
+^ 0011
+  ----
+  xx!x!x
+```
+
+- `<<` to left-shift bits.
+- Doubles a number.
+- `5 << 2` --> 5 << 1 = 10. 10 << 1 = 20.
+
+- `>>` to right-shift bits.
+- Divides by 2, rounded down.
+- `10 >> 2` --> 10 >> 1 = 5, 5 >> 1 = 2.
+
