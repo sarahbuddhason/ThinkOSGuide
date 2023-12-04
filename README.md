@@ -289,11 +289,23 @@ fclose(fp);
   xx!x!x
 ```
 
-- `<<` to left-shift bits.
-- Doubles a number.
-- `5 << 2` --> 5 << 1 = 10. 10 << 1 = 20.
+- `<<` to left-shift bits. Doubles a number.
+```cpp
+5 << 2 = 20, since:
+  5 << 1 = 10, so
+  10 << 1 = 20.
+```
 
-- `>>` to right-shift bits.
-- Divides by 2, rounded down.
-- `10 >> 2` --> 10 >> 1 = 5, 5 >> 1 = 2.
+- `>>` to right-shift bits. Divides by 2, rounded down.
+```cpp
+10 >> 2 = 2, since:
+  10 >> 1 = 5, so
+  5 >> 1 = 2.
+```
+
+## Float Representation
+- Most computers use IEEE standard for floating-point arithmetic.
+- `float` corresponds to 32-bit.
+- `double` corresponds to 64-bit.
+- Consists of a sign bit, 8 bits for exponent, and 23 bits for coefficient. `(-1)^s * c * 2^q`
 
