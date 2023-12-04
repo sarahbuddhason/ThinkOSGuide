@@ -164,13 +164,64 @@ char *s = "Hello, World";    // Second address.
 
 ![image](https://github.com/sarahbuddhason/ThinkOSGuide/assets/55853717/9ead8692-468e-4818-9e5c-c99f6030258f)
 
-## Sparse Page Tables
+### Sparse Page Tables
 - Due to impractical size of complete page tables, sparse implementations are used.
 - **Multilevel Page Table:** Used by Linux, etc.
 - **Associative Table:** Each entry includes both virtual PN and physical PN.
 
-## Context Switch
+### Context Switch
 - OS interrupting a running process, saving its state, and then running another process.
 - Since each process has its own page table, OS works with MMU to make sure each process gets the right one.
 - Each page table entry gets a process ID, so page tables from multiple processes can be in the MMU at once.
 
+---
+
+## Files and File Systems
+
+### Persistence
+- Data stored in HDD or SSD is persistent, surviving after the process completes.
+- HDD: Data is stored in blocks, laid out in sectors, which make up tracks.
+- SSD: Data blocks are numbered sequentially, but each block has a limited write-to life.
+- We want an abstraction of persistent storage hardware: **a file system**.
+
+### File Systems
+- A mapping from each file's name to its contents.
+- Names are `keys` and contents are `values`: key-value database.
+- A `file` is a sequence of bytes.
+- File names are **hierarchical**, specifying a path from a top-level directory to the file.
+
+### Key Difference
+- Files are byte-based.
+- Persistent storage is block-based.
+- OS translates byte-based file operations into block-based operations on storage devices.
+
+### File Reading
+
+```cpp
+FILE *fp = fopen("/home/name/file.txt", "r");
+char c = fgetc(fp);
+fclose(fp);
+```
+
+1. `fopen` uses filename to find the top-level directory ("/"), subdirectory ("home"), and sub-subdirectory ("name").
+2. Finds `file.txt` and opens it for reading. Creates data structure that represents the file being read and the **file position**.
+3. `fgetc` checks whether the next character is already in memory. If yes, then read the next character, advance the file position, and return result.
+4. If no, OS issues an I/O request to get the next block.
+5. New data block is stored in memory. Resumes reading the first character and storing it as a local variable.
+6. When file is closed, OS completes any pending operations, removes stored data, and frees the data structure.
+
+### File Writing
+
+```cpp
+FILE *fp = fopen("/home/downey/file.txt", "w");
+fputc('b', fp);
+fclose(fp);
+```
+
+1. `fopen` uses filename to find the file. If it does not exist, creates a new file and adds an entry in parent directory.
+2. Create data structure that indicates file is open for writing. Sets file position to 0.
+3. `fputc` attempts to write first byte of file. If file already exists, OS loads the first block into memory. Otherwise, allocates a new block in memory and requests a new block on disk.
+4. After data block is modified, it is not copied back to disk right away. Data is **buffered**, stored in memory and only written to disk when there is at least one block to write.
+5. When file is closed, any **buffered data** is written to disk and data structure is freed.
+
+### Disk Performance
