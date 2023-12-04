@@ -334,3 +334,56 @@ fclose(fp);
 4. `realloc`: Takes a pointer to previously allocated memory and a new integer size. Allocates memory with size, copies data from old chunk, frees old chunk, and returns pointer to new chunk.
 
 ### Memory Errors
+1. Access unallocated memory.
+2. Free unallocated memory.
+3. Double freeing.
+
+### Memory Leaks
+- Program runs for a long time and allocated memory is not freed, total memory use will increase indefinitely.
+- System runs out of physical memory, returning `NULL` on the next `malloc`.
+
+```cpp
+void *p = malloc(size);
+if (p == NULL) {
+perror("malloc failed");  // Prints error message.
+exit(-1);                 // Terminate process with status code.
+}
+```
+
+### Memory Implementation
+1. When process starts, OS allocates space for:
+  - Text segment, static data.
+  - Stack.
+  - Heap, which contains dynamic data. Initially only contains one free chunk.
+2. When `malloc` called, checks whether it can find chunk big enough.
+3. If not, requests more memory from the system:
+  - `sbrk` sets a pointer to end of the heap.
+  - OS allocates new pages of physical memory, updates page table, sets the program break.
+4. Most Linux systems use `ptmalloc` to implement this API.
+
+### Memory Details
+- `malloc`: Runtime depends on how many free chunks there are.
+- `free`: Usually fast, regardless of number of free chunks.
+- `calloc`: Runtime depends on chunk size (and number of free chunks) as it clears every byte.
+- `realloc`: Fast if new size is smaller or current size can be expanded. Otherwise, runtime depends on size of old chunk.
+
+### `malloc` Internal Structure
+- When `malloc` allocates chunk, adds space to beginning and end for **boundary tags**.
+- Stores information, including size and state (allocated, free).
+- Using BTs, `malloc` can get from any chunk to the previous one or the next one in memory.
+- **Free List:** Free chunks are chained as a doubly-linked list.
+- Minimum chunk size is 16 bytes, so `malloc` is not space-efficient for small structures due to BT and FL overhead.
+
+### Heap Fragmentation
+- If you allocate and free chunks of varied sizes, heap becomes fragmented.
+- Free space broken into many small pieces, wasting space and making memory caches less effective.
+
+### Binning and Caching
+- Free list sorted by size into bins.
+- `malloc` searches for a chunk with a particular size by searching in that bin.
+- `malloc` is fast for freeing a chunk and immediately allocating a chunk with the same size.
+
+---
+
+## Caching
+
