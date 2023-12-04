@@ -387,3 +387,40 @@ exit(-1);                 // Terminate process with status code.
 
 ## Caching
 
+### Program Execution Model
+
+- Program starts:
+1. Code is stored on HDD or SSD.
+2. OS creates a new process to run the program.
+3. Loader copies the text from storage into main memory.
+4. Starts the program by calling main.
+
+- While it runs:
+1. Most data is stored in main memory, some stored in **registers**.
+2. Registers include:
+   - **Program Counter:** Contains the address of the next instruction.
+   - **Instruction Register:** Contains machine code instruction in execution.
+   - **Stack Pointer:** Contains address of the current function's stack frame.
+   - **Status Register:** Contains information about the current computation. Usually contains a bit that is set if result of previous operation = 0.
+   - General-purpose ones that hold the data the program is working with.
+3. CPU executes **instruction cycle**:
+   - **Fetch:** Next instruction is fetched from memory, stored in IR.
+   - **Decode:** Control unit that decodes the instruction and sends signals to other parts.
+   - **Execute:** Signals from CU cause appropriate computation to occur.
+  
+### Instruction Set
+- **Load:** Transfer value from memory to register.
+- **Arithmetic:** Loads operands from registers, performs operation, stores result in register.
+- **Store:** Transfer value from register to memory.
+- **Jump:** Changes program counter, causing flow of execution to jump to another location in the program.
+
+### Cache Performance
+- **Memory Bottleneck:** CPU speed is significally faster than memory access speed.
+- Solution is **caching**, a small, fast memory near the CPU.
+- Reduces access time for frequently used data.
+
+### Cache Levels
+1. **Level 1 Cache:** Smallest, fastest, 1-2 MB with access time = 1 ns.
+2. **Level 2 Cache:** Access time = 4 ns.
+3. **Level 3 Cache:** Access time = 16 ns.
+
