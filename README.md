@@ -225,3 +225,28 @@ fclose(fp);
 5. When file is closed, any **buffered data** is written to disk and data structure is freed.
 
 ### Disk Performance
+- If the CPU completes one instruction per clock cycle, it would complete 200 instructions while waiting for a byte from memory.
+- OS generally switches to another process while waiting for data from disk.
+- Significant speed difference between main memory and persistent storage.
+
+### Speed Improvement Strategies
+- **Block Transfers:** Generally try to read large blocks each time disk is accessed.
+- **Pre-Fetching:** Sometimes OS can predict that a process will read a block, start loading it before it is requested. If reading first block, likely that you will read second block.
+- **Buffering:** When writing, OS stores data block in memory and only writes it to disk later. Can modify it several times before writing to disk once.
+- **Caching:** If a processed has used a block recently, likely to use it again. OS keeps a copy of the block in memory to handle future requests at memory speed.
+
+### Index Nodes (Inodes)
+- Data structure that contains information about files, location of their blocks, and other **metadata**.
+- Contains a pointer to an **indirection block** which contains only pointers to other blocks.
+- Number of pointers = 1024. Block size = 8 KB. So, an indirection block can address 8 MB.
+- With a **double indirection block**, we can address 8 MB.
+- With a **triple indirection block**, we can address 8 TB.
+
+### File Allocation Table (FAT)
+- Alterative to inodes.
+- Contains one entry per block, called a **cluster**.
+- A **root directory** contains a pointer to the first cluster in each file.
+- The FAT entry for each cluster points to the next cluster in the file.
+
+### Block Allocation
+- 
