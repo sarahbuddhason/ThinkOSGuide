@@ -145,3 +145,32 @@ char *s = "Hello, World";    // Second address.
 4. Combines PA page number with offset to produce PA.
 5. PA is passed to RAM, which reads or writes to given location.
 
+### Translation Lookaside Buffer
+- Contains cached copies of data from page table (kernel memory).
+- **Page table** contains mapping from virtual page numbers to physical page numbers.
+- Each process has its own page table.
+
+### TLB Example
+- Suppose VA is 32 bits. Physical memory is 1 GB, divided into 1 KB pages.
+- 1 GB = 2^30 bytes. 1 KB = 2^10 bytes.
+- So, there are 2^20 physical pages, or "frames".
+- VA space size = 2^23 bytes. Page size = 2^10 bytes.
+- So, there are 2^22 virtual pages.
+- Size of offset is determined by page size. Here, it takes 10 bits to specify a byte on a page.
+- VA = 32 bits. Offset = 10 bits.
+- So, 22 bits make up the virtual page number.
+- Number of physical pages = 2^20. Physical page number = 20 bits.
+- So, adding in 10 bit offset, 30 bits make up the physical addresses.
+
+![image](https://github.com/sarahbuddhason/ThinkOSGuide/assets/55853717/9ead8692-468e-4818-9e5c-c99f6030258f)
+
+## Sparse Page Tables
+- Due to impractical size of complete page tables, sparse implementations are used.
+- **Multilevel Page Table:** Used by Linux, etc.
+- **Associative Table:** Each entry includes both virtual PN and physical PN.
+
+## Context Switch
+- OS interrupting a running process, saving its state, and then running another process.
+- Since each process has its own page table, OS works with MMU to make sure each process gets the right one.
+- Each page table entry gets a process ID, so page tables from multiple processes can be in the MMU at once.
+
