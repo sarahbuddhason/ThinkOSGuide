@@ -424,6 +424,11 @@ exit(-1);                 // Terminate process with status code.
 2. **Level 2 Cache:** Access time = 4 ns.
 3. **Level 3 Cache:** Access time = 16 ns.
 
+### Cache Lines
+- Units where data are stored in caches.
+- Each line corresponds to a block of addresses in memory.
+- When data is loaded into cache, corresponding addresses also stored.
+
 ### Cache Speed
 - **Hit Rate:** Fraction of memory accesses that find data in cache.
 - **Miss Rate:** Fraction of memory accesses that go to memory.
@@ -522,7 +527,7 @@ do {
 ## Paging / Swapping
 
 1. Process A calls `malloc` to allocate a chunk.
-2. If no free space in heap with the requested size, `malloc` calls `sbrk` (program break) to ask the OS for more memory.
+2. If no free space in heap with the requested size, `malloc` calls `sbrk` (program break) to ask the OS for more memory (**swap space**).
 3. If there is a free page in physical memory, OS adds it to Process A's page table with a new range of virtual addresses.
 4. If no free pages, then the paging system chooses a **victim page** from Process B.
 5. Copies the contents of the victim page from memory to disk.
@@ -548,6 +553,22 @@ do {
 - Process A runs and evicts pages Process B needs, and vice versa.
 - Both processes slow down and system becomes unresponsive (thrashing).
 - Avoid by detecting an increase in paging and blocking processes until system responsive again.
+
+### What happens when you `malloc` 8GB on 4GB RAM?
+
+- When `malloc` is called to allocate 8GB, the OS' memory management system is sent the request.
+- If there is not enough physical memory available, as in this case, the OS intervenes with a process called **paging**.
+- **Paging** moves data between RAM and a part of the disk called **swap space**.
+- The 8GB would be stored in this swap space until it is needed.
+- When the program later tries to access the memory that is not in RAM, the MMU calls an interrupt called **page fault**.
+- The OS handles this interrupt by transferring the data into RAM from disk.
+- 4GB on the disk that may be swapped back in and out, however, causes a significant performance bottleneck, since disk accesses are significantly slower than RAM accesses.
+- This can lead to a process called **thrashing**, where the system over time spends more time swapping data in and out and becomes unresponsive.
+- A solution is multi-level caches close to the CPU which store frequently accessed data.
+- Accessing data from a Level 1 cache is fastest, followed by Level 2 then Level 3.
+- Frequent interrupts via page faults, however, means CPU has to repeatedly load new data into ram.
+- This increases likelihood of a cache miss, where the CPU looks for data not in the cache.
+- The CPU must then look for it in main memory or in disk, which incurs a time penalty.
 
 ---
 
