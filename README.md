@@ -520,3 +520,20 @@ do {
    - Implemented in linked lists and hash tables for effective tracking and retrieval.
 
 ## Paging / Swapping
+
+1. Process A calls `malloc` to allocate a chunk.
+2. If no free space in heap with the requested size, `malloc` calls `sbrk` (program break) to ask the OS for more memory.
+3. If there is a free page in physical memory, OS adds it to Process A's page table with a new range of virtual addresses.
+4. If no free pages, then the paging system chooses a **victim page** from Process B.
+5. Copies the contents of the victim page from memory to disk.
+6. Modifies Process B's page table to indicate the page has been "swapped out".
+7. Page is reallocated to Process A after it is cleared.
+8. `sbrk` call returns, and `malloc` gets additional space in the heap.
+9. `malloc` allocated the requested chunk and returns.
+10. When Process B accesses a swapped out page, MMU causes an interrupt.
+11. OS handles the interrupt and transfers the page back from disk to memory.
+12. Page is swapped in, and Process B resumes.
+
+### Paging Advantages
+
+- 
