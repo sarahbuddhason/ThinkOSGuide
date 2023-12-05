@@ -493,4 +493,29 @@ do {
 - Each level acts as a cache for the one below it.
 
 ### Caching Policy
-- 
+
+1. Who moves data where?
+   - Register allocation done by Compiler.
+   - Memory cache done by CPU.
+   - Data from storage to memory by User or OS.
+   - Data from tape to disk done by Administrator.
+  
+2. What data is moved?
+   - Block sizes smallest at top of hierarchy.
+
+3. When is data moved?
+   - Data gets moved into cache when used for first time.
+   - With **pre-fetching**, data is loaded before explicitly requested (pre-load entire block, etc.)
+
+4. Where does data go in cache?
+   - More time to make decisions at bottom of hierarchy.
+   - Cache at top needs to be fast.
+
+### Cache Replacement Policies
+
+1. **Least-Recently-Used (LRU)**:
+   - Discard LRU items first when cache is full.
+   - Keep track of what was used and when.
+   - Every time an item is accessed, its position is updated as it becomes the most recently used.
+   - Implemented in linked lists and hash tables for effective tracking and retrieval.
+
