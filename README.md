@@ -424,3 +424,20 @@ exit(-1);                 // Terminate process with status code.
 2. **Level 2 Cache:** Access time = 4 ns.
 3. **Level 3 Cache:** Access time = 16 ns.
 
+### Cache Speed
+- **Hit Rate:** Fraction of memory accesses that find data in cache.
+- **Miss Rate:** Fraction of memory accesses that go to memory.
+- **Miss Penalty:** Extra time to process a cache miss.
+- **Average Access Time:** `Th - m*Tp`, where `Tp = Tm - Th`.
+
+### Locality
+1. **Temporal Locality:** Tendency to reuse data within short time frame.
+   - Instructions inside loops.
+   - Result of one instruction used as an operand in next instruction.
+2. **Spatial Locality:** Tendency to use data in nearly locations.
+   - Blocks of code with no jumps, instructions run sequentially.
+   - Parameters and local variables of a function stored on the stack.
+   - Process elements of an array sequentially.
+
+### Measuring Cache Performance
+- 
