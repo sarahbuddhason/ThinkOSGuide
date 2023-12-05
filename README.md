@@ -554,7 +554,7 @@ do {
 - Both processes slow down and system becomes unresponsive (thrashing).
 - Avoid by detecting an increase in paging and blocking processes until system responsive again.
 
-### What happens when you `malloc` 8GB on 4GB RAM?
+### What happens when you `malloc` 8GB on a 4GB RAM system?
 
 - When `malloc` is called to allocate 8GB, the OS' memory manager handles the request, allocating **virtual memory**.
 - Virtual memory is moreso the promise of memory, so no physical memory or disk space is used yet at this point.
@@ -565,14 +565,45 @@ do {
 - The OS handles the page fault by transferring data from the swap space to RAM in chunks as needed.
 - There is, however, a significant performance bottleneck with swapping in and out this data, since disk accesses are significantly slower than RAM accesses.
 - This can lead to a process called **thrashing**, where the system spends more time moving data in and out of memory instead of executing actual tasks.
-- One solution is built-in caches which store frequently accessed data from RAM.
-- These caches operate at different levels, with L1 being the fastest and closes to the CPU core.
 - Sometimes, the CPU does not find the data it needs in cache.
 - It would then attempt to retrieve it from RAM, which is slower, or in the case of a page fault, from an even slower disk.
 - Repeated loading of new data into RAM due to page faults disrupts the cache's ability to speed up data access.
 - Overall, significant resources will be needed to handle page faults and swapping, straining the stability of the system.
 
----
+### How could you fetch data from RAM faster?
+
+- One solution is built-in caches which store frequently accessed data from RAM.
+- These caches operate at different levels, with L1 being the fastest and closes to the CPU core.
+
+### Latency Comparison Numbers
+
+| Operation                            | Latency       | Comparative Latency           |
+|--------------------------------------|---------------|-------------------------------|
+| L1 cache reference                   | 0.5 ns        |                               |
+| Branch mispredict                    | 5 ns          |                               |
+| L2 cache reference                   | 7 ns          | 14x L1 cache                  |
+| Mutex lock/unlock                    | 25 ns         |                               |
+| Main memory reference                | 100 ns        | 20x L2 cache, 200x L1 cache   |
+| Compress 1K bytes with Zippy         | 3,000 ns      | 3 us                          |
+| Send 1K bytes over 1 Gbps network    | 10,000 ns     | 10 us                         |
+| Read 4K randomly from SSD*           | 150,000 ns    | 150 us ~1GB/sec SSD           |
+| Read 1 MB sequentially from memory   | 250,000 ns    | 250 us                        |
+| Round trip within same datacenter    | 500,000 ns    | 500 us                        |
+| Read 1 MB sequentially from SSD*     | 1,000,000 ns  | 1 ms ~1GB/sec SSD, 4X memory  |
+| Disk seek                            | 10,000,000 ns | 10 ms 20x datacenter roundtrip|
+| Read 1 MB sequentially from disk     | 20,000,000 ns | 20 ms 80x memory, 20X SSD     |
+| Send packet CA->Netherlands->CA      | 150,000,000 ns| 150 ms                        |
+
+### If virtual memory is the promise of memory, when is actual physical memory used?
+
+### Is there a limit to virtual memory?
+
+### What happens if you call `calloc` 8GB on a 4GB RAM system?
+
+### If you've allocated 3GB total on a 4GB RAM system, and you see that you're getting many page faults, what might be the source?
+
+### Most OS have daemons that will kill processes using a lot of memory. If I allocate 8GB on a 4GB system, will my allocating process get open-killed?
+
 
 ## Multitasking
 
@@ -647,3 +678,8 @@ do {
 ---
 
 ## Threads
+
+- Create a process, OS also makes:
+  1. New address space, including text segment, static segment, heap.
+  2. **Thread of execution**, including PC, hardware state, call stack.
+ 
