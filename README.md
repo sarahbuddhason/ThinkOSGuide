@@ -519,3 +519,4 @@ do {
    - Every time an item is accessed, its position is updated as it becomes the most recently used.
    - Implemented in linked lists and hash tables for effective tracking and retrieval.
 
+## Paging / Swapping
