@@ -556,19 +556,21 @@ do {
 
 ### What happens when you `malloc` 8GB on 4GB RAM?
 
-- When `malloc` is called to allocate 8GB, the OS' memory management system is sent the request.
-- If there is not enough physical memory available, as in this case, the OS intervenes with a process called **paging**.
+- When `malloc` is called to allocate 8GB, the OS' memory manager handles the request, allocating **virtual memory**.
+- Virtual memory is moreso the promise of memory, so no physical memory or disk space is used yet at this point.
+- If at some point there is not enough physical memory available for all the running processes, as in this case, the OS intervenes with a process called **paging**.
 - **Paging** moves data between RAM and a part of the disk called **swap space**.
-- The 8GB would be stored in this swap space until it is needed.
-- When the program later tries to access the memory that is not in RAM, the MMU calls an interrupt called **page fault**.
-- The OS handles this interrupt by transferring the data into RAM from disk.
-- 4GB on the disk that may be swapped back in and out, however, causes a significant performance bottleneck, since disk accesses are significantly slower than RAM accesses.
-- This can lead to a process called **thrashing**, where the system over time spends more time swapping data in and out and becomes unresponsive.
-- A solution is multi-level caches close to the CPU which store frequently accessed data.
-- Accessing data from a Level 1 cache is fastest, followed by Level 2 then Level 3.
-- Frequent interrupts via page faults, however, means CPU has to repeatedly load new data into ram.
-- This increases likelihood of a cache miss, where the CPU looks for data not in the cache.
-- The CPU must then look for it in main memory or in disk, which incurs a time penalty.
+- Swap space is used dynamically, moving data there as needed.
+- When the program later tries to access memory that is not in RAM, which may be because it has yet to load or it has been swapped out, a **page fault** is triggered.
+- The OS handles the page fault by transferring data from the swap space to RAM in chunks as needed.
+- There is, however, a significant performance bottleneck with swapping in and out this data, since disk accesses are significantly slower than RAM accesses.
+- This can lead to a process called **thrashing**, where the system spends more time moving data in and out of memory instead of executing actual tasks.
+- One solution is built-in caches which store frequently accessed data from RAM.
+- These caches operate at different levels, with L1 being the fastest and closes to the CPU core.
+- Sometimes, the CPU does not find the data it needs in cache.
+- It would then attempt to retrieve it from RAM, which is slower, or in the case of a page fault, from an even slower disk.
+- Repeated loading of new data into RAM due to page faults disrupts the cache's ability to speed up data access.
+- Overall, significant resources will be needed to handle page faults and swapping, straining the stability of the system.
 
 ---
 
