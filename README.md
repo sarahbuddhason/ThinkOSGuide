@@ -589,3 +589,39 @@ do {
 - In a multitasking system, the **scheduler** handles time slice context switches.
 
 ### Process Life Cycle
+
+- **Process Control Block:** Data structure that keeps track of the process information and state:
+  1. Running, on a core.
+  2. Ready, for future running.
+  3. Blocked, waiting for a future event (network, disk read).
+  4. Done, but has unsaved exit information.
+
+- **State Transitions:**
+  1. **Created -> Ready:** `fork` system call creates a process. When `fork` is done, new process (`child`) is ready.
+  2. **Ready -> Running:** Scheduler resumes `parent` process or starts new `child` process.
+  3. **Running -> Ready:** Process is interrupted. Scheduler chooses to not let it resume.
+  4. **Running -> Blocked:** Process executes system call that cannot complete immediately. Scheduler chooses another process.
+  5. **Blocked -> Ready:** Interrupt handler determines which process was waiting. Scheduler may choose to resume unblocked process.
+  6. **Running -> Done:** Calls `exit`. Interrupt handler stores `exit` code in PCB.
+
+### Scheduling
+- Aims to optimize response time and throughput (number of requests completed per unit of time).
+- **Decision Heuristics:**
+  1. Limitations of resources. Computation-heavy = CPU-bound. Read from disk = I/O-bound. User action = Interaction-bound.
+  2. If process runs for short time, then makes block request, it should run immediately after.
+
+### Priority-Based Scheduling
+1. Explicit user prioritization through `nice` system call. Decreases priority.
+2. Process requests block before time slice is complete. Likely to be interaction- or I/O-bound. Priority up.
+3. Process runs for entire time slice. Likely to be CPU-bound. Priority down.
+4. Process blocked for a long time. Should respond to what it was waiting for. Priority up.
+5. Process A is blocked, waiting for Process B. Priority of Process B up.
+
+### Real-Time Scheduling
+- Applications with tasks that must meet strict deadlines (motors, sensors).
+- **Real-Time OS (RTOS):** Specialized OS to ensure highest priority processes run within fixed time frame.
+
+---
+
+## Threads
+
