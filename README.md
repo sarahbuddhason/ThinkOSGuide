@@ -683,4 +683,192 @@ do {
 - Create a process, OS also makes:
   1. New address space, including text segment, static segment, heap.
   2. **Thread of execution**, including PC, hardware state, call stack.
- 
+
+- **Single-Threaded:** Only one thread of execution runs in each address space.
+- **Multi-Threaded:** Multiple threads running in the same address space.
+
+### Shared Resources
+- Share the text segment, but often running different parts of code.
+- Share the static segment, so if one thread changes a global variable, other threads see the change.
+- Share the heap, so threads share dynamically-allocated chunks.
+
+### Individual Stacks
+- Each thread has its own stack.
+- Can call functions without interfering with each other.
+- Often do not or cannot access each other's local variables.
+
+### Creating Threads
+- `POSIX Threads`: Pthreads is the UNIX standard.
+
+```cpp
+#include <pthread.h>
+#include <semaphore.h>
+
+pthread_t makeThread(void *(*entry)(void *), Shared *shared) {    // Wrapper to provide error-checking. `pthread_t` is the handle / ID.
+  int n;
+  pthread_t thread;
+
+  n = pthread_create(&thread, NULL, entry, (void *)shared);       // Success = 0.
+
+  if (n != 0) {
+    perror("pthread_create failed.");
+    exit(-1);
+  }
+
+  return thread;
+}
+
+typedef struct {
+  int counter;
+} Shared;                                              // Data structure to contain values shared between threads.
+
+Shared *makeShared() {
+  Shared *shared = check_malloc(sizeof (Shared));      // Allocate space.
+  shared->counter = 0;                                 // Initialize.
+  return shared;
+}
+```
+
+```cpp
+gcc -g -02 -o arr arr.c -lpthread`    // Compiles source file named `arr.c`, links with `Pthread` library, generates executable named `arr`.
+```
+
+### `pthread_create`
+
+```cpp
+pthread_create(&thread, NULL, entry, (void *)shared);
+```
+
+- Specify the function where the execution of the new thread will begin.
+- Function is named `entry`.
+  
+```cpp
+void *entry(void *arg) {
+  Shared *shared = (Shared *) arg;
+  child_code(shared);
+  pthread_exit(NULL);
+}
+```
+
+- `entry` parameter declared as a `void` pointer, but is really a pointer to a `Shared` structure.
+- Can typecast it accordingly and pass to `child_code` to do work.
+
+```cpp
+void child_code(Shared *shared) {
+  cout << shared->counter << endl;
+  shared->counter++;
+}
+```
+
+- When `child_code` returns, `entry` calls `pthread_exit` used to pass a value to the thread that joins with the current thread.
+- If nothing to pass, then pass `NULL`.
+
+```cpp
+pthread_t child[NUM_CHILDREN];                  // NUM_CHILDREN = compile-time constant.
+Shared *shared = make_shared(NUM_THREADS);
+
+for (int i = 0; i < NUM_CHILDREN; i++) {
+  child[i] = make_thread(entry, shared);        // `child` = array of thread handles.
+}
+```
+
+### Joining Threads
+
+- When one thread wants to wait for another one to complete, invokes `pthread_join`.
+
+```cpp
+void joinThread(pthread_t thread) {
+  int n = pthread_join(thread, NULL);        // Handle of the thread you want to wait for.
+  if (n == -1) {
+    perror("pthread_join fail.);
+    exit(-1);
+  }
+}
+```
+
+- Most commonly, the parent thread creates and joins all child threads.
+- Loop below waits for one child at a time in their creation order.
+- If one of the children is late, other children may complete in the meantime.
+- Loop exits only when children are done.
+
+```cpp
+for (int i = 0; i < NUM_CHILDREN; i++) {
+  joinThread(child[i]);
+}
+```
+
+### Synchronization with Mutex
+
+- Without synchronization and order, threads can read and write to shared variables unpredictably (`int counter`).
+- **Mutex:** Object that guarantees mutual exclusion for a block of code. Only one thread can execute at a time.
+
+```cpp
+void child_code(Shared *shared) {
+  mutex_lock(shared->mutex);
+  cout << shared->counter << endl;
+  shared->counter++;
+  mutex_unlock(shared->mutex);
+}
+
+typedef struct {
+  int counter;
+  Mutex *mutex;
+} Shared;
+
+Shared *makeShared(int end) {
+  Shared *shared = check_malloc(sizeof(Shared));
+  shared->counter = 0;
+  shared->mutex = makeMutex();
+  return shared;
+}
+```
+
+- Before thread can access `counter`, it locks the mutex, barring all other threads.
+- When thread is done, it unlocks, allowing blocked threads to proceed.
+- In effect, threads line up to execute `child_code` one at a time.
+
+### Mutex Initialization
+
+- `Mutex` is a wrapper over POSIX's `pthread_mutex_t`.
+- If using POSIX, must allocate space for `pthread_mutex_t` and call `pthread_mutex_init`.
+- Must pass by address, so that it does not create a copy.
+
+```cpp
+#include <pthread.h>
+
+typedef pthread_mutex_t Mutex;
+
+Mutex makeMutex() {
+  Mutex *mutex = check_malloc(sizeof(Mutex));      // Allocate space.
+  int n = pthread_mutex_init(mutex, NULL);
+
+  if (n != 0) {
+    perror("makeMutex failed.");
+    exit(-1);
+  }
+  
+  return mutex;                                    // A pointer, can be passed around without unwanted copying.
+}
+```
+
+### Mutex Locking
+
+```cpp
+void mutexLock(Mutex *mutex) {
+  int n = pthread_mutex_lock(mutex);
+  if (n != 0) perror_exit("mutexLock failed.");
+}
+```
+
+### Mutex Unlocking
+
+```cpp
+void mutexUnblock(Mutex *mutex) {
+  int n = pthread_mutex_unlock(mutex);
+  if (n != 0) perror_exit("mutexUnlock failed.");
+}
+```
+
+---
+
+## Condition Variables
