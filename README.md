@@ -440,4 +440,43 @@ exit(-1);                 // Terminate process with status code.
    - Process elements of an array sequentially.
 
 ### Measuring Cache Performance
+
+```cpp
+i1 = 0;
+do {
+  sec_0 = get_seconds();
+
+  for (int n = 0; n < limit; n += stride) // Max index, and elements skipped over.
+    array[n]++;                           // Access cache.
+
+  i1++;
+  sec += (get_seconds() - sec_0)          // Total CPU time in inner loop.
+} while (sec < 0.1);                      // Runs for 0.1 seconds.
+```
+
+```cpp
+i2 = 0;
+do {
+  sec_0 = get_seconds();
+
+  for (int n = 0; n < limit; n += stride)
+    temp += n;
+
+  i2++;
+  sec - (get_seconds() - sec_0)
+} while (i2 < i1);
+```
+
+- `sec` = **total miss penalty incurred by all accesses**.
+- Average miss penalty per access is `sec * 1e9 / i1 / limit * stride` (ns)
+- Maximum miss penalty if `stride >= block size`, since only one element is accessed per block.
+- Good cache performance if `array.size() < cache.size()` or `array.size() > cache.size()` AND `stride` is large.
+- **Multi-Level Caches:** Processor has small, fast cache and bigger, slower cache.
+
+### Programming for Performance
+- For large array, traverse array once rather than several times.
+- For 2D array (array of rows), faster to traverse through elements by row.
+- `merge_sort` breaks big arrays into smaller pieces for better performance.
+
+### Memory Hierarchy
 - 
