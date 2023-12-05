@@ -479,4 +479,18 @@ do {
 - `merge_sort` breaks big arrays into smaller pieces for better performance.
 
 ### Memory Hierarchy
+
+| Device  | Access Time | Typical Size | Cost          | Details |
+|---------|-------------|--------------|---------------|---------|
+| Register| 0.5 ns      | 256 B        | ?             |         |
+| Cache   | 1 ns        | 2 MiB        | ?             | Small, close to CPU              |
+| DRAM    | 100 ns      | 4 GiB        | $10 / GiB     | Dynamic RAM, packaged as dual in-line memory module (DIMM) with 16+ chips      |
+| SSD     | 10 µs       | 100 GiB      | $1 / GiB      | Faster than HDD, more expensive  |
+| HDD     | 5 ms        | 500 GiB      | $0.25 / GiB   |         |
+| Tape    | minutes     | 1–2 TiB      | $0.02 / GiB   | Store large amounts cheaply      |
+
+- Each level grows bigger and becomes slower.
+- Each level acts as a cache for the one below it.
+
+### Caching Policy
 - 
