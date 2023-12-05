@@ -552,3 +552,40 @@ do {
 ---
 
 ## Multitasking
+
+- CPU contains **multiple cores**, running several processes at once.
+
+### Kernel
+- Lowest level of OS, implements multitasking and interrupts.
+- **Interrupts:** Event that stops normal instruction cycle.
+- **Interrupt Handler:** Flow of execution jumps to special handler.
+
+### Interrupt Types
+1. **Hardware:** Caused when a device sends a signal to CPU.
+   - Network interface may cause interrupt when packet of data arrives.
+   - Disk drive may cause interrupt when data transfer completes.
+   - Timers that cause interrupts at intervals.
+2. **Software:** Caused by a running program.
+   - If an instruction cannot complete.
+   - Floating-point errors, division by 0.
+  
+### System Calls
+- When a program needs to access a hardware device.
+- System call executes an instruction that triggers interrupt, causing flow of execution to jump to the kernel.
+- Kernel reads system call, performs request, then resumes process.
+
+### Interrupts and Hardware States
+1. Interrupt occurs.
+2. Hardware saves PC in a special register for the kernel, and jumps to interrupt handler.
+3. Interrupt handler stores PC, status registers, stack pointer, and relevant data registers in memory.
+4. Interrupt handler runs its code.
+5. Hardware restores the contents of the saved registers.
+6. Hardware restores the PC, jumping back to the interrupted instruction.
+
+### Context Switching
+- Kernel switches CPU from one process to another: **context switch**.
+- During switch, has to clear data stored in MMU, and wait for new process to load data into cache.
+- Context switches also occur after a process' **time slice** elapses.
+- In a multitasking system, the **scheduler** handles time slice context switches.
+
+### Process Life Cycle
