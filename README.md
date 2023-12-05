@@ -536,4 +536,19 @@ do {
 
 ### Paging Advantages
 
-- 
+- Some pages are only used once and can be swapped out.
+- Memory leaks can occur when allocated space is never accessed again. Swapping plugs the leak.
+- Daemons often sit idle and "wake up" to respond to events, can be swapped out.
+- Users may have many windows open, inactive ones swapped out.
+- Many processes running the same program, can share same text and static segments.
+- Total memory allocated often greatly exceeds size of physical memory.
+
+### Thrashing
+
+- Process A runs and evicts pages Process B needs, and vice versa.
+- Both processes slow down and system becomes unresponsive (thrashing).
+- Avoid by detecting an increase in paging and blocking processes until system responsive again.
+
+---
+
+## Multitasking
