@@ -617,7 +617,17 @@ do {
 
 ### What happens if you call `calloc` 8GB on a 4GB RAM system?
 
-
+- Calling `calloc` to allocate 8GB on a 4B RAM system follows a generally similar process to using `malloc`, with some differences in memory initialization.
+- Like `malloc`, `calloc` doesn't immediately allocate physical memory but reserves a portion of the virtual address space.
+- The key difference is that `calloc` initializes each byte in the allocated memory to zero.
+- Since we only have 4GB of physical RAM, the OS would use virtual memmory to fulfill the 8GB request.
+- It would use RAM and swap space on the HDD or SSD to provide the necessary space.
+- Again, the OS would allocate physical memory only when the pages in virtual memory are actually accessed.
+- Similarly to `malloc`, the first access results in a page fault, which the OS responds to by allocating a physical memory page.
+- If the program access all 8GB, the OS would start using swap space, significantly slowing down the system.
+- The access speeds of swap space on the disk compared to RAM is significant.
+- Like with `malloc`, if there is heavy reliance on swap space due to physical RAM limitations, it may lead to thrashing.
+- This occurs when the system spends more time swapping data between RAM and disk than performing actual tasks.
 
 ### If you've allocated 3GB total on a 4GB RAM system, and you see that you're getting many page faults, what might be the source?
 
