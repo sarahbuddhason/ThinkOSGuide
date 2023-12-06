@@ -872,3 +872,84 @@ void mutexUnblock(Mutex *mutex) {
 ---
 
 ## Condition Variables
+
+### Work Queue
+- Threads communicate with each other using a **work queue**.
+- **Producers:** Put data into the queue.
+- **Consumers:** Take data out of the queue.
+
+### Work Queue for GUI
+- One thread runs GUI, responds to user events.
+- Another thread processes user requests.
+- Puts those requests into a queue.
+- "Back-end" thread takes requests out of queue and processes them.
+
+### Thread Safety
+- Need queue implementation so that multiple can access it at once.
+- Need to handle cases where queue is empty, when queue is full.
+
+### Circular Buffer
+- Single, fixed-sized buffer connected end-to-end.
+- Does not need to have elements moved around when one is consumed. Follows FIFO.
+
+### Thread-Safe Queue Implementation
+
+```cpp
+typedef struct {
+  int *array;
+  int length;
+  int next_in;
+  int next_out;
+} Queue;
+
+Queue *make_queue(int length) {
+  Queue *q = (Queue *) malloc(sizeof(Queue));        // Allocate space.
+  q->length = length + 1;                            // Length of array + 1 = queue length.
+  q->array = (int *) malloc(length * sizeof(int));   // Allocate space.
+  q->next_in = 0;
+  q->next_out = 0;                                   
+  return q;
+}
+
+int queue_empty(Queue *q) {
+  return (q->next_in == q->next_out);                // next_in == next_out is a special case where the queue is empty. next_out = 0 is invalid, technically.
+}
+
+void queue_push(Queue *q, int item) {
+  if (queue_full(q)) perror_exit("Queue is full.");
+
+  q->array[q->next_in] = item;                       // Insert the new element.
+  q->next_in = queue_incr(q, q->next_in);            // Increment `next_in`.
+}
+
+int queue_incr(Queue *q, int i) {
+  return (i + 1) % q->length;                        // When index `i` reaches end of `array` it wraps around to 0.
+}
+
+int queue_full(Queue *q) {
+  return (queue_incr(q, q->next_in) == q->next_out); // Special case.
+}
+```
+
+- If only `queue_incr` exists, eventually `next_in` catches up with `next_out`.
+- Would incorrectly conclude that queue was empty.
+- In `queue_full`, if incrementing `next_in` leads to `next_out`, we cannot add another element without making it appear empty.
+- So, we stop one element before the `end`, and then indicate that it is full.
+
+```cpp
+int queue_pop(Queue *q) {
+  if (queue_empty(q)) perror_exit("Queue is empty.");
+
+  int popped = q->array[q->next_out];
+  q->next_out = queue_incr(q, q->next_out);
+  return popped;
+}
+```
+
+### Producers and Consumers Implementation
+
+```cpp
+void *producer_entry(void *arg) {
+
+}
+```
