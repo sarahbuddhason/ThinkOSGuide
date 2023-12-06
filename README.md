@@ -949,7 +949,243 @@ int queue_pop(Queue *q) {
 ### Producers and Consumers Implementation
 
 ```cpp
-void *producer_entry(void *arg) {
+typedef struct {
+  Queue *queue;
+} Shared;
 
+Share *make_shared() {
+  Shared *shared = check_malloc(sizeof(Shared));    // Allocate space.
+  shared->queue = make_queue(QUEUE_LENGTH);
+  return shared;
 }
 ```
+
+- Entry point for producer thread.
+
+```cpp
+void *producer_entry(void *arg) {
+  Shared *shared = (Shared *) arg;
+
+  for (int i = 0; i < QUEUE_LENGTH - 1; i++) {
+    cout << "Adding item " << i << endl;
+    queue_push(shared->queue, i);
+  }
+
+  pthread_exit(NULL);
+}
+```
+
+- Entry point for consumer thread.
+
+```cpp
+void *consumer_entry(void *arg) {
+  int item;
+  Shared *shared = (Shared *) arg;
+
+  for (int i = 0; i < QUEUE_LENGTH - 1; i++) {
+    item = queue_pop(shared->queue);
+    cout << "Consuming item " << item << endl;
+  }
+
+  pthread_exit(NULL);
+}
+```
+
+- Parent code that starts producer and consumer threads and wait for them.
+
+```cpp
+  pthread_t child[NUM_CHILDREN];
+  Shared *shared = make_shared();
+
+  child[0] = make_thread(producer_entry, shared);
+  child[1] = make_thread(consumer_entry, shared);
+
+  for (int i = 0; i < NUM_CHILDREN; i++) {
+    join_thread(child[i]);
+  }
+```
+
+- Current implementation is not thread-safe.
+- Different threads can access `array`, `next_in`, `next_out` simultaneously.
+- Above can be solved with **mutex**.
+
+- Consumer should block until queue is not empty.
+- Producer should block if the queue is full.
+- Above can be solved with **condition variables**.
+
+### Thread-Safety with Mutex
+
+```cpp
+typedef struct {
+  int *array;
+  int length;
+  int next_in;
+  int next_out;
+  Mutex *mutex;                             // Add mutex.
+} Queue;
+
+Queue *make_queue(int length) {
+  Queue *q = (Queue *) malloc(sizeof(Queue));
+  q->length = length;
+  q->array = (int *) malloc(length * sizeof(int));
+  q->next_in = 0;
+  q->next_out = 0;
+  q->mutex = make_mutex();                  // Initialize the mutex.
+}
+
+void queue_push(Queue *q, int item) {
+  mutex_lock(q->mutex);                     // Lock the queue.
+
+  if (queue_full(q)) {
+    mutex_unlock(q->mutex);                 // If queue is full, unlock then exit.
+    perror_exit("Queue is full.");
+  }
+
+  q->array[q->next_in] = item;
+  q->next_in = queue_incr(q, q->next_in);
+  mutex_unlock(q->mutex);                  // Unlock the queue after producing.
+}
+
+int queue_pop(Queue *q) {
+  mutex_lock(q->mutex);                     // Lock the queue.
+
+  if (queue_empty(q)) {
+    mutex_unlock(q->mutex);                 // If queue is empty, unlock then exit.
+    perror_exit("Queue is empty.");
+  }
+
+  int item = q->array[q->next_out];
+  q->next_out = queue_incr(q, q->next_out);
+
+  mutex_unlock(q->mutex);                  // Unlock the queue after consuming.
+  return item;
+}
+```
+
+### Thread-Safety with Condition Variables
+
+- Data structure associated with a condition.
+- Allows threads to block until the condition becomes true.
+- `thread_pop`: Check whether queue is empty. If so, then wait until queue is not empty.
+- `thread_push`: Check whether queue is full. If so, then wait until queue is not full.
+
+
+```cpp
+typedef struct {
+  int *array;
+  int length;
+  int next_in;
+  int next_out;
+  Mutex *mutex;
+  Cond *nonempty;                           // Condition variable.
+  Cond *nonfull;                            // Condition variable.
+} Queue;
+
+Queue *make_queue(int length) {
+  Queue *q = (Queue *) malloc(sizeof(Queue));
+  q->length = length;
+  q->array = (int *) malloc(length * sizeof(int));
+  q->next_in = 0;
+  q->next_out = 0;
+  q->mutex = make_mutex();
+  q->nonempty = make_cond();                // Initialize the condition variable.
+  q->nonfull = make_cond();                 // Initialize the condition variable.
+}
+
+int queue_pop(Queue *q) {
+  mutex_lock(q->mutex);
+
+  while (queue_empty(q)) {                  // P1: Condition we are waiting for = a `nonempty` queue.
+    cond_wait(q->nonempty, q->mutex);       // P2: Mutex that protects the queue.
+  }
+
+  int item = q->array[q->next_out];
+  q->next_out = queue_incr(q, q->next_out);
+
+  mutex_unlock(q->mutex);
+  cond_signal(q->nonfull);                  // Signal that the queue is `nonfull`, since we just popped a thread.
+  return item;
+}
+```
+
+- When thread that locked the mutex calls `cond_wait`, it unlocks the mutex then blocks.
+- If `cond_wait` did not unlock before blocking, no other thread would be able to able to access the queue.
+- While the consumer is blocked on `nonempty`, producer can run.
+
+```cpp
+void queue_push(Queue *q, int item) {
+  mutex_lock(q->mutex);
+
+  if (queue_full(q)) {
+    mutex_unlock(q->mutex);
+    perror_exit("Queue is full.");
+  }
+
+  q->array[q->next_in] = item;
+  q->next_in = queue_incr(q, q->next_in);
+  mutex_unlock(q->mutex);
+  cond_signal(q->nonempty);                // Signals that the queue is `nonempty`, since we just pushed a thread.
+}
+```
+
+- Signalling a condition variable indicates that it is true.
+- If no threads are waiting on the condition variable, no effect.
+- If threads are waiting, one of them gets unblocked and resumes execution of `cond_wait`.
+- Before it can return from `cond_wait`, must wait for and then lock the mutex, again.
+
+- When consumer thread exits `while` loop in `queue_pop`, we know:
+  1. There is at least one item in queue.
+  2. The mutex is locked, so it is safe to access the queue.
+- Consumer then pops an item, unlocks mutex, and returns.
+
+### `cond_wait`
+
+1. `while` loop instead of an `if` statement because:
+   - Must be re-checked in the chance of an intercepted signal.
+   - Thread A is waiting on `nonempty`.
+   - Thread B adds item, signals `nonempty`.
+   - Thread A tries to lock mutex, but before it can, Evil Thread C locks it, pops an item, and unlocks.
+   - Queue is now empty, but Thread A is no longer blocked.
+   - Thread A could lock mutex and attempt to pop from empty queue, leading to error.
+  
+2. Naming convention:
+   - Condition is false when you call `cond_wait`, true when you call `cond_signal`.
+   - "Wait, queue is not `nonempty`."
+   - "Now signalling that queue is `nonempty`."
+  
+### Condition Variable Implementation
+
+```cpp
+typedef pthread_cond_t Cond;
+
+Cond *make_cond() {
+  Cond *cond = check_malloc(sizeof(Cond));      // Allocate space.
+  int n = pthread_cond_init(cond, NULL);        // Initialize condition variable.
+  if (n != 0) perror_exit("make_cond failed");
+  return cond;                                  // Returns pointer to `cond`.
+}
+
+void cond_wait(Cond *cond, Mutex *mutex) {
+  int n = pthread_cond_wait(cond, mutex);
+  if (n != 0) perror_exit("cond_wait failed.");
+}
+
+void cond_signal(Cond *cond, Mutex *mutex) {
+  int n = pthread_cond_signal(cond);
+  if (n != 0) perror_exit("cond_signal failed.");
+}
+```
+
+1. `cond_wait`:
+  - When thread calls `cond_wait`, thread is blocked, and `mutex` is atomically released.
+  - Thread remains blocked until another thread signals `cond`.
+  - After `cond` is signalled, `cond_wait` requires mutex, returns to the calling thread.
+
+2. `cond_signal`:
+   - When thread calls `cond_signal`, thread unblocks one of the threads waiting on `cond`.
+  
+---
+
+## Semaphores
+
+- 
