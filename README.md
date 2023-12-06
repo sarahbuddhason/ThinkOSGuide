@@ -631,7 +631,15 @@ do {
 
 ### If you've allocated 3GB total on a 4GB RAM system, and you see that you're getting many page faults, what might be the source?
 
-
+- The total memory usage of a system is the sum of all memory used by all processes, not just the system we allocated 3GB for.
+- If other processes are using a lot of memory, this would reduce the amount of RAM available for the 3GB allocation.
+- This could be leading to the high number of page faults as the OS struggles to keep the necessary data in RAM.
+- Another issue is that there may be fragmentation within memory, which occurs when free space is broken into smaller chunks.
+- Even though there is 4GB RAM total, if it is fragmented, large contiguous blocks of memory may not be ready when needed.
+- Again, this leads to more frequent page faults as the OS works harder to find available memory spaces and swaps more often.
+- The swap space may also already be heavily used by the other processes.
+- The program we are running may also have memory leaks, which occur when the program allocates memory but fails to free it back to the system.
+- Over time, this consumes more and more memory, leading to frequent page faults.
 
 ### Most OS have daemons that will kill processes using a lot of memory. If I allocate 8GB on a 4GB system, will my allocating process get open-killed?
 
