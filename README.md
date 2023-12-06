@@ -643,7 +643,14 @@ do {
 
 ### Most OS have daemons that will kill processes using a lot of memory. If I allocate 8GB on a 4GB system, will my allocating process get open-killed?
 
-
+- Whether or not this process gets killed depends on a few factors.
+- Many OS allow memory overcommitment, so processes can allocate more memory than the physical RAM available, since not all will be used at the same time.
+- If a system runs of memory, and swapping is no longer able to resolve it, a LINUX-based OS may terminate one or more processes to free up memory.
+- Whether a process is terminate depends on several criteria, some of which are how much memory it is actively using, how long it has been running, and its priority.
+- If our process actively tries to use all 8GB allocated, there is a higher likelihood of it being terminated, especially if it leads to system instability.
+- However, if our process uses memory sparingly, it may not be immediately terminated.
+- For a Windows-based OS, if the process requests more memory than is available, the `malloc` may just fail.
+- If it doesn't fail, the system would become very slow, but it does not terminate processes the same way LINUX machines do.
 
 ---
 
