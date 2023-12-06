@@ -1188,4 +1188,101 @@ void cond_signal(Cond *cond, Mutex *mutex) {
 
 ## Semaphores
 
-- 
+- Data structure to help threads work together without interference.
+- POSIX semaphores: `sem_t`.
+
+```cpp
+typedef sem_t Semaphore;
+
+Semaphore *make_semaphore(int value);
+void semaphore_wait(Semaphore *sem);
+void semaphore_signal(Semaphore *sem);
+```
+
+```cpp
+Semaphore *make_semaphore(int value) {
+  Semaphore *sem = check_malloc(sizeof(Semaphore));    // Allocate space.
+  int n = sem_init(sem, 0, value);                     // Initialize semaphore.
+  if (n != 0) perror_exit("sem_init failed.");
+  return sem;
+}
+```
+
+```cpp
+void *semaphore_wait(Semaphore *sem) {
+  int n = sem_wait(sem);
+  if (n != 0) perror_exit("sem_wait failed.");
+}
+```
+
+```cpp
+void *semaphore_signal(Semaphore *sem) {
+  int n = sem_post(sem);
+  if (n != 0) perror_exit("sem_post failed.");
+}
+```
+
+### Using Semaphores as a Mutex
+
+```cpp
+Semaphore *mutex = make_semaphore(1);
+
+semaphore_wait(mutex);
+// ...
+// Protected code blocks ...
+// ...
+semaphore_signal(mutex);
+```
+
+- Initialize to 1 to indicate `mutex` is unlocked.
+- The first thread can pass the semaphore without blocking.
+
+### Using Semaphores with Producer-Consumer
+
+```cpp
+typedef struct {
+  int *array;
+  int length;
+  int next_in;
+  int next_out;
+  Semaphore *mutex;            // Mutex as a semaphore.
+  Semaphore *items;            // # items in the queue = # consumers that can execute `queue_pop` without blocking. Initially 0.
+  Semaphore *spaces;           // # empty spaces in the queue = # producers that can execute `queue_push` without blocking. Initially length - 1.
+} Queue;
+
+Queue *make_queue(int length)
+{
+  Queue *q = (Queue *) malloc(sizeof(Queue));
+  q->length = length;
+  q->array = (int *) malloc(length * sizeof(int));
+  q->next_in = 0;
+  q->next_out = 0;
+  q->mutex = make_semaphore(1);
+  q->items = make_semaphore(0);
+  q->spaces = make_semaphore(length - 1);
+  return q;
+}
+
+void queue_push(Queue *q, int item) {
+  semaphore_wait(q->spaces);                    // Keeps track of how many SPACES are available.
+  semaphore_wait(q->mutex);                     // Blocks producers if queue is full.
+
+  q->array[q->next_in] = item;
+  q->next_in = queue_incr(q, q->next_in);
+
+  semaphore_signal(queue->mutex);
+  semaphore_signal(queue->items);               // Keeps track of how many ITEMS are **NOW** available.
+}
+
+int queue_pop(Queue *q) {
+  semaphore_wait(q->items);                    // Keeps track of how many ITEMS are available.
+  semaphore_wait(q->mutex);                    // Blocks consumers if queue is full.
+
+  int item = q->array[q->next_out];
+  q->next_out = queue_incr(q, q->next_out);
+
+  semaphore_signal(q->mutex);
+  semaphore_signal(q->spaces);                 // Keeps track of how many SPACES are **NOW** available.
+  return item;
+}
+```
