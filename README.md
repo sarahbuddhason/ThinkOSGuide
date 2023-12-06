@@ -596,13 +596,36 @@ do {
 
 ### If virtual memory is the promise of memory, when is actual physical memory used?
 
+- When a process calls `malloc` to allocate space, the OS reserves a portion of the virtual address space for it.
+- Virtual memory provides the process with the illusion of a large block of contiguous memory, regardless of how much physical memory is actually available.
+- Physical memory is actually used when the process starts to access (that is, read or write) the memory it has been allocated.
+- The first access to a page of memory that has not been mapped to physical memory triggers a page fault.
+- This interrupt tells the OS that we need to access part of its virtual memory.
+- The OS then allocates physical memory for the page, and updates the page table that maps between virtual and physical memory.
+- As the program continues running, it may access different parts of its allocated memory.
+- In this case, space is limited, and so the OS may also swap some of the less frequently used data to disk to make room for new data in physical memory.
+
 ### Is there a limit to virtual memory?
+
+- Yes, there is a limit which is determined by a few factors.
+- The most fundamental one is the OS' architecture.
+- A 32-bit OS has a virtual memory limit of 2^32 bytes, which is 4GB.
+- A portion is often reserved for the OS itself, so in reality, there is actually less than 4GB for other processes.
+- A 64-bit OS can theoretically address up to 2^64 bytes (18 exabytes) but practical limits are much lower.
+- Virtual memory also relies on physical storage like HDD and SSD for the swap space.
+- The size of those devices limit the extent of the swap space, and thus the amount of virtual memory vaialble.
 
 ### What happens if you call `calloc` 8GB on a 4GB RAM system?
 
+
+
 ### If you've allocated 3GB total on a 4GB RAM system, and you see that you're getting many page faults, what might be the source?
 
+
+
 ### Most OS have daemons that will kill processes using a lot of memory. If I allocate 8GB on a 4GB system, will my allocating process get open-killed?
+
+
 
 ---
 
